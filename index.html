@@ -10,20 +10,20 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #050810; /* 深邃夜空黑 */
+            background: #050810;
             font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
         }
 
         #canvas {
             position: absolute;
-            top: 0; left: 0;
+            inset: 0;
             z-index: 1;
         }
 
-        /* 打字机文字：更精细的排版 */
         #typing-text {
             position: absolute;
-            top: 12%; left: 10%;
+            top: 12%;
+            left: 10%;
             color: rgba(255, 255, 255, 0.85);
             font-size: 1.1rem;
             line-height: 2.2;
@@ -32,10 +32,10 @@
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
         }
 
-        /* 3D 文字环绕：调稀疏一点，更高级 */
         .word-container {
             position: absolute;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             perspective: 1500px;
             transform-style: preserve-3d;
             z-index: 5;
@@ -70,36 +70,104 @@
             letter-spacing: 6px;
             z-index: 10;
         }
+
+        /* ========= 🎁 礼物弹窗 ========= */
+        #gift-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 8, 16, 0.92);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(6px);
+        }
+
+        .gift-box {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            animation: fadeIn 1.5s ease;
+        }
+
+        .gift-title {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .gift-text {
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+        }
+
+        #gift-btn {
+            padding: 12px 40px;
+            font-size: 1rem;
+            letter-spacing: 4px;
+            background: transparent;
+            color: rgba(255,192,203,0.9);
+            border: 1px solid rgba(255,192,203,0.6);
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        #gift-btn:hover {
+            background: rgba(255,192,203,0.15);
+            box-shadow: 0 0 20px rgba(255,192,203,0.4);
+        }
+
+        #gift-modal.hide {
+            animation: fadeOut 1.2s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; visibility: hidden; }
+        }
     </style>
 </head>
 <body>
 
 <div id="typing-text"></div>
 <div class="word-container" id="word-cloud"></div>
-<div class="footer">2026,有你真好！</div>
+<div class="footer">2026, 有你真好！</div>
 <canvas id="canvas"></canvas>
+
+<!-- 🎁 弹窗 -->
+<div id="gift-modal">
+    <div class="gift-box">
+        <div class="gift-title">🎁</div>
+        <div class="gift-text">点击打开你的新年礼物</div>
+        <button id="gift-btn">打开</button>
+    </div>
+</div>
+
+<!-- 🎵 背景音乐（替换为你的音频） -->
+<audio id="bgm" loop preload="auto">
+    <source src="靠近.mp3" type="audio/mpeg">
+</audio>
 
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const typingElement = document.getElementById('typing-text');
-    
+    const bgm = document.getElementById('bgm');
+
     let width, height;
-    let stars = []; // 背景碎星
-    let heartParticles = []; // 爱心粒子
+    let stars = [];
+    let heartParticles = [];
     let mouse = { x: 0, y: 0 };
 
     const config = {
-        heartParticleCount: 800, // 爱心粒子更密集
-        starCount: 1000,         // 背景光点数量，越多越震撼
-        messages: ["岁岁年年", "万物是你", "新春志喜", "人间理想", "温柔共度", "眸中星河", "Love You", "Forever",
-                  "今天也想靠近你一点","和你待在一起就很安心","世界吵闹，但你刚刚好","新的一年，我还是站在你这边","不止今年，是很多年",
-                  "你一出现，我就心软",
-                  "我的温柔，大概都用在你身上了",
-                  "夜色刚好，你也刚好",
-                  "今晚也想对你说晚安",
-                  "With you, I feel home",
-                  "Still you, always you"],
+        heartParticleCount: 800,
+        starCount: 1000,
+        messages: [
+            "岁岁年年", "万物是你", "新春志喜", "人间理想", "温柔共度", "眸中星河", "Love You", "Forever", "今天也想靠近你一点","和你待在一起就很安心","世界吵闹，但你刚刚好","新的一年，我还是站在你这边","不止今年，是很多年", "你一出现，我就心软", "我的温柔，大概都用在你身上了", "夜色刚好，你也刚好", "今晚也想对你说晚安", "With you, I feel home", "Still you, always you"],
         longText: "想把所有的温柔都寄送给你。\n新的一年，\n我们依然在彼此的星轨里共鸣。\n愿你被世界温柔以待，\n而我，负责守护这份温柔。"
     };
 
@@ -117,14 +185,13 @@
         height = canvas.height = window.innerHeight;
     }
 
-    // 创建背景纯净光点
     function createStars() {
         stars = [];
         for (let i = 0; i < config.starCount; i++) {
             stars.push({
                 x: Math.random() * width,
                 y: Math.random() * height,
-                size: Math.random() * 1.2, // 碎星要小才精致
+                size: Math.random() * 1.2,
                 opacity: Math.random(),
                 speed: Math.random() * 0.05 + 0.02,
                 blinkSpeed: Math.random() * 0.02 + 0.01
@@ -132,20 +199,18 @@
         }
     }
 
-    // 创建爱心
     function createHeart() {
         for (let i = 0; i < config.heartParticleCount; i++) {
             const t = Math.random() * Math.PI * 2;
             const x = 16 * Math.pow(Math.sin(t), 3);
             const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
-            
             heartParticles.push({
                 x: (Math.random() - 0.5) * width,
                 y: (Math.random() - 0.5) * height,
                 targetX: x * 16,
                 targetY: y * 16,
                 size: Math.random() * 2 + 0.5,
-                color: `hsla(${Math.random() * 30 + 330}, 80%, 75%, ${Math.random() * 0.6 + 0.4})`,
+                color: `hsla(${Math.random() * 30 + 330}, 80%, 75%, 0.7)`,
                 speed: Math.random() * 0.04 + 0.015
             });
         }
@@ -170,39 +235,32 @@
             const item = document.createElement('div');
             item.className = 'word-item';
             item.innerText = text;
-            item.style.animationDelay = `-${(i * 3.75)}s`;
+            item.style.animationDelay = `-${i * 4}s`;
             item.style.top = `${(Math.random() - 0.5) * 400}px`;
             cloud.appendChild(item);
         });
     }
 
     function animate() {
-        // 清除画布
         ctx.fillStyle = '#050810';
         ctx.fillRect(0, 0, width, height);
 
-        // 1. 绘制背景光点（无连线）
         stars.forEach(s => {
             s.opacity += s.blinkSpeed;
             if (s.opacity > 1 || s.opacity < 0) s.blinkSpeed *= -1;
-            
             ctx.beginPath();
-            ctx.arc(s.x + (mouse.x * 0.01), s.y + (mouse.y * 0.01), s.size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(s.opacity)})`;
+            ctx.arc(s.x + mouse.x * 0.01, s.y + mouse.y * 0.01, s.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255,255,255,${Math.abs(s.opacity)})`;
             ctx.fill();
-            
-            // 缓慢向上漂浮
             s.y -= s.speed;
             if (s.y < -10) s.y = height + 10;
         });
 
-        // 2. 绘制汇聚爱心
         ctx.save();
-        ctx.translate(width / 2 + (mouse.x * 0.04), height / 2 + (mouse.y * 0.04));
+        ctx.translate(width / 2 + mouse.x * 0.04, height / 2 + mouse.y * 0.04);
         heartParticles.forEach(p => {
             p.x += (p.targetX - p.x) * p.speed;
             p.y += (p.targetY - p.y) * p.speed;
-
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
             ctx.fillStyle = p.color;
@@ -215,15 +273,25 @@
         requestAnimationFrame(animate);
     }
 
-    window.addEventListener('mousemove', (e) => {
+    window.addEventListener('mousemove', e => {
         mouse.x = e.clientX - width / 2;
         mouse.y = e.clientY - height / 2;
     });
 
     window.addEventListener('resize', init);
+
+    /* 🎁 弹窗 & 音乐控制 */
+    const modal = document.getElementById('gift-modal');
+    const giftBtn = document.getElementById('gift-btn');
+    bgm.volume = 0.4;
+
+    giftBtn.addEventListener('click', () => {
+        bgm.play().catch(() => {});
+        modal.classList.add('hide');
+        setTimeout(() => modal.remove(), 1200);
+    });
+
     init();
 </script>
 </body>
 </html>
-
-
