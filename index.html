@@ -2,83 +2,113 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>送给你的新年礼物</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To My Love - 2026</title>
     <style>
-        body {
+        body, html {
             margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            background-color: #000;
-            font-family: 'Microsoft YaHei', sans-serif;
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
         }
 
-        canvas {
-            display: block;
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
 
-        /* 3D 文字环绕容器 */
-        #word-cloud {
+        /* 顶部打字机文字 */
+        #typing-text {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.2rem;
+            line-height: 1.8;
+            letter-spacing: 2px;
+            z-index: 10;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        /* 3D 文字环绕 */
+        .word-container {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 0;
-            height: 0;
-            perspective: 1000px;
+            perspective: 1200px;
             transform-style: preserve-3d;
+            z-index: 5;
             pointer-events: none;
         }
 
-        .word {
+        .word-item {
             position: absolute;
+            color: #fff;
+            opacity: 0;
             white-space: nowrap;
-            color: rgba(255, 255, 255, 0.8);
-            text-shadow: 0 0 10px rgba(255, 105, 180, 0.8);
-            font-size: 1.2rem;
-            transform-origin: center;
-            animation: rotateLinear 20s infinite linear;
+            text-shadow: 0 0 15px #ff75c3;
+            animation: rotate3d 25s infinite linear;
+            font-weight: 300;
         }
 
-        @keyframes rotateLinear {
-            from { transform: rotateY(0deg) translateZ(300px); }
-            to { transform: rotateY(360deg) translateZ(300px); }
+        @keyframes rotate3d {
+            0% { transform: rotateY(0deg) translateZ(350px); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: rotateY(360deg) translateZ(350px); opacity: 0; }
         }
 
-        /* 底部祝福语 */
-        #footer-text {
+        /* 底部署名 */
+        .footer {
             position: absolute;
-            bottom: 30px;
+            bottom: 40px;
             width: 100%;
             text-align: center;
-            color: white;
-            letter-spacing: 5px;
-            text-shadow: 0 0 10px #ff69b4;
-            font-size: 1.5rem;
+            color: #ffb6c1;
+            font-size: 0.9rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
             z-index: 10;
+            opacity: 0.7;
         }
     </style>
 </head>
 <body>
 
-<div id="word-cloud"></div>
-<div id="footer-text">2026 新年快乐，我一直都在</div>
+<div id="typing-text"></div>
+<div class="word-container" id="word-cloud"></div>
+<div class="footer">Project Eternal Love · 2026.01.01</div>
 <canvas id="canvas"></canvas>
 
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const wordCloud = document.getElementById('word-cloud');
-
+    const typingElement = document.getElementById('typing-text');
+    
     let width, height;
     let particles = [];
     let heartParticles = [];
-    
-    // 你想说的话
-    const messages = ["陪伴是最长的告白", "永远爱你", "你是我的唯一", "2026 也要在一起", "心动不止瞬间", "你是星河赠我的礼物", "Stay with me", "Love you forever"];
+    let mouse = { x: 0, y: 0 };
 
+    // 1. 配置信息
+    const config = {
+        heartSize: 15,
+        particleCount: 600,
+        messages: ["岁岁年年", "万物是你", "新春志喜", "你是人间理想", "温柔共度", "眸中星河", "2026 见证", "Always You"],
+        longText: "在这个星光闪烁的夜晚，\n想把所有的温柔都寄送给你。\n新的一年，\n我们依然在彼此的星轨里共鸣。\n愿你被世界温柔以待，\n而我，负责守护这份温柔。"
+    };
+
+    // 2. 初始化
     function init() {
         resize();
-        createHeart();
-        createStars();
-        create3DWords();
+        createHeartParticles();
+        startTyping();
+        createWordCloud();
         animate();
     }
 
@@ -87,91 +117,80 @@
         height = canvas.height = window.innerHeight;
     }
 
-    // 生成爱心坐标点
-    function createHeart() {
-        for (let i = 0; i < 500; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            // 爱心参数方程
-            const x = 16 * Math.pow(Math.sin(angle), 3);
-            const y = -(13 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle));
+    // 3. 爱心粒子生成
+    function createHeartParticles() {
+        for (let i = 0; i < config.particleCount; i++) {
+            const t = Math.random() * Math.PI * 2;
+            const x = 16 * Math.pow(Math.sin(t), 3);
+            const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
             
             heartParticles.push({
-                x: 0,
-                y: 0,
-                targetX: x * 15, // 缩放倍数
-                targetY: y * 15,
-                color: `hsla(${Math.random() * 30 + 330}, 100%, 70%, ${Math.random()})`,
-                size: Math.random() * 2 + 1,
-                speed: Math.random() * 0.02 + 0.01
+                x: (Math.random() - 0.5) * width,
+                y: (Math.random() - 0.5) * height,
+                tx: x * config.heartSize,
+                ty: y * config.heartSize,
+                size: Math.random() * 2,
+                color: `hsla(${Math.random() * 20 + 340}, 80%, 70%, ${Math.random() * 0.8 + 0.2})`,
+                speed: Math.random() * 0.03 + 0.01
             });
         }
     }
 
-    // 生成背景星空
-    function createStars() {
-        for (let i = 0; i < 200; i++) {
-            particles.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                size: Math.random() * 1.5,
-                opacity: Math.random(),
-                speed: Math.random() * 0.5
-            });
+    // 4. 打字机效果
+    let textIndex = 0;
+    function startTyping() {
+        if (textIndex < config.longText.length) {
+            const char = config.longText.charAt(textIndex);
+            typingElement.innerHTML += char === '\n' ? '<br>' : char;
+            textIndex++;
+            setTimeout(startTyping, 150);
         }
     }
 
-    // 生成3D环绕文字
-    function create3DWords() {
-        messages.forEach((msg, i) => {
-            const div = document.createElement('div');
-            div.className = 'word';
-            div.innerText = msg;
-            // 随机分布高度和动画延迟
-            const delay = i * (20 / messages.length) * -1;
-            const top = (Math.random() - 0.5) * 400; 
-            div.style.animationDelay = `${delay}s`;
-            div.style.marginTop = `${top}px`;
-            wordCloud.appendChild(div);
+    // 5. 3D环绕文字
+    function createWordCloud() {
+        const cloud = document.getElementById('word-cloud');
+        config.messages.forEach((text, i) => {
+            const item = document.createElement('div');
+            item.className = 'word-item';
+            item.innerText = text;
+            item.style.animationDelay = `-${(i * 3)}s`;
+            item.style.top = `${(Math.random() - 0.5) * 300}px`;
+            cloud.appendChild(item);
         });
     }
 
-    function draw() {
-        // 黑色背景加一点拖影感
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    // 6. 动画循环
+    function animate() {
+        // 背景渐变拖尾
+        ctx.fillStyle = 'rgba(9, 10, 15, 0.15)';
         ctx.fillRect(0, 0, width, height);
 
-        // 画背景星空
-        particles.forEach(p => {
-            ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-            p.y -= p.speed;
-            if (p.y < 0) p.y = height;
-        });
-
-        // 画中间的荧光爱心
         ctx.save();
-        ctx.translate(width / 2, height / 2);
-        heartParticles.forEach(p => {
-            // 荧光汇聚效果：向目标点缓慢移动
-            p.x += (p.targetX - p.x) * p.speed;
-            p.y += (p.targetY - p.y) * p.speed;
+        // 随鼠标轻微偏移的视差效果
+        ctx.translate(width / 2 + (mouse.x * 0.05), height / 2 + (mouse.y * 0.05));
 
-            ctx.fillStyle = p.color;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = p.color;
+        heartParticles.forEach(p => {
+            // 向爱心形状位置聚拢
+            p.x += (p.tx - p.x) * p.speed;
+            p.y += (p.ty - p.y) * p.speed;
+
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = p.color;
             ctx.fill();
         });
         ctx.restore();
-    }
 
-    function animate() {
-        draw();
         requestAnimationFrame(animate);
     }
+
+    window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX - width / 2;
+        mouse.y = e.clientY - height / 2;
+    });
 
     window.addEventListener('resize', resize);
     init();
