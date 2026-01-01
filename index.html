@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>送给你的新年礼物</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* 3D 文字环绕容器 */
+        #word-cloud {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            pointer-events: none;
+        }
+
+        .word {
+            position: absolute;
+            white-space: nowrap;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 10px rgba(255, 105, 180, 0.8);
+            font-size: 1.2rem;
+            transform-origin: center;
+            animation: rotateLinear 20s infinite linear;
+        }
+
+        @keyframes rotateLinear {
+            from { transform: rotateY(0deg) translateZ(300px); }
+            to { transform: rotateY(360deg) translateZ(300px); }
+        }
+
+        /* 底部祝福语 */
+        #footer-text {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            letter-spacing: 5px;
+            text-shadow: 0 0 10px #ff69b4;
+            font-size: 1.5rem;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+<div id="word-cloud"></div>
+<div id="footer-text">2026 新年快乐，我一直都在</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const wordCloud = document.getElementById('word-cloud');
+
+    let width, height;
+    let particles = [];
+    let heartParticles = [];
+    
+    // 你想说的话
+    const messages = ["陪伴是最长的告白", "永远爱你", "你是我的唯一", "2026 也要在一起", "心动不止瞬间", "你是星河赠我的礼物", "Stay with me", "Love you forever"];
+
+    function init() {
+        resize();
+        createHeart();
+        createStars();
+        create3DWords();
+        animate();
+    }
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+
+    // 生成爱心坐标点
+    function createHeart() {
+        for (let i = 0; i < 500; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            // 爱心参数方程
+            const x = 16 * Math.pow(Math.sin(angle), 3);
+            const y = -(13 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle));
+            
+            heartParticles.push({
+                x: 0,
+                y: 0,
+                targetX: x * 15, // 缩放倍数
+                targetY: y * 15,
+                color: `hsla(${Math.random() * 30 + 330}, 100%, 70%, ${Math.random()})`,
+                size: Math.random() * 2 + 1,
+                speed: Math.random() * 0.02 + 0.01
+            });
+        }
+    }
+
+    // 生成背景星空
+    function createStars() {
+        for (let i = 0; i < 200; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: Math.random() * 1.5,
+                opacity: Math.random(),
+                speed: Math.random() * 0.5
+            });
+        }
+    }
+
+    // 生成3D环绕文字
+    function create3DWords() {
+        messages.forEach((msg, i) => {
+            const div = document.createElement('div');
+            div.className = 'word';
+            div.innerText = msg;
+            // 随机分布高度和动画延迟
+            const delay = i * (20 / messages.length) * -1;
+            const top = (Math.random() - 0.5) * 400; 
+            div.style.animationDelay = `${delay}s`;
+            div.style.marginTop = `${top}px`;
+            wordCloud.appendChild(div);
+        });
+    }
+
+    function draw() {
+        // 黑色背景加一点拖影感
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, width, height);
+
+        // 画背景星空
+        particles.forEach(p => {
+            ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            p.y -= p.speed;
+            if (p.y < 0) p.y = height;
+        });
+
+        // 画中间的荧光爱心
+        ctx.save();
+        ctx.translate(width / 2, height / 2);
+        heartParticles.forEach(p => {
+            // 荧光汇聚效果：向目标点缓慢移动
+            p.x += (p.targetX - p.x) * p.speed;
+            p.y += (p.targetY - p.y) * p.speed;
+
+            ctx.fillStyle = p.color;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.restore();
+    }
+
+    function animate() {
+        draw();
+        requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resize);
+    init();
+
+</script>
+</body>
+</html>
