@@ -1,136 +1,137 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>To My Love - 2026 Starry Sky</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #050810;
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>To My Love - 2026 Starry Sky</title>
 
-        #canvas {
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-        }
+<style>
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #050810;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
 
-        #typing-text {
-            position: absolute;
-            top: 12%;
-            left: 10%;
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 1.1rem;
-            line-height: 2.2;
-            letter-spacing: 3px;
-            z-index: 10;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-        }
+#canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
 
-        .word-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            perspective: 1500px;
-            transform-style: preserve-3d;
-            z-index: 5;
-            pointer-events: none;
-        }
+/* ===== 打字文本 ===== */
+#typing-text {
+    position: absolute;
+    top: 12%;
+    left: 8%;
+    right: 8%;
+    color: rgba(255,255,255,0.85);
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+    line-height: 2.2;
+    letter-spacing: 0.18em;
+    z-index: 10;
+    text-shadow: 0 0 15px rgba(255,255,255,0.4);
+}
 
-        .word-item {
-            position: absolute;
-            color: #fff;
-            opacity: 0;
-            white-space: nowrap;
-            text-shadow: 0 0 10px #ff9ecd;
-            animation: rotate3d 30s infinite linear;
-            font-weight: 300;
-            font-size: 1rem;
-        }
+/* ===== 3D 文字环绕 ===== */
+.word-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    perspective: 1500px;
+    transform-style: preserve-3d;
+    z-index: 5;
+    pointer-events: none;
+}
 
-        @keyframes rotate3d {
-            0% { transform: rotateY(0deg) translateZ(400px); opacity: 0; }
-            10% { opacity: 0.7; }
-            90% { opacity: 0.7; }
-            100% { transform: rotateY(360deg) translateZ(400px); opacity: 0; }
-        }
+.word-item {
+    position: absolute;
+    color: #fff;
+    opacity: 0;
+    white-space: nowrap;
+    text-shadow: 0 0 10px #ff9ecd;
+    animation: rotate3d 32s infinite linear;
+    font-weight: 300;
+    font-size: clamp(0.75rem, 2vw, 1rem);
+}
 
-        .footer {
-            position: absolute;
-            bottom: 30px;
-            width: 100%;
-            text-align: center;
-            color: rgba(255, 192, 203, 0.6);
-            font-size: 2rem;
-            letter-spacing: 6px;
-            z-index: 10;
-        }
+@keyframes rotate3d {
+    0% { transform: rotateY(0deg) translateZ(380px); opacity: 0; }
+    10% { opacity: 0.7; }
+    90% { opacity: 0.7; }
+    100% { transform: rotateY(360deg) translateZ(380px); opacity: 0; }
+}
 
-        /* ========= 🎁 礼物弹窗 ========= */
-        #gift-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(5, 8, 16, 0.92);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            backdrop-filter: blur(6px);
-        }
+/* ===== 底部文字 ===== */
+.footer {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    color: rgba(255,192,203,0.6);
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    letter-spacing: 0.35em;
+    z-index: 10;
+}
 
-        .gift-box {
-            text-align: center;
-            color: rgba(255,255,255,0.9);
-            animation: fadeIn 1.5s ease;
-        }
+/* ===== 礼物弹窗 ===== */
+#gift-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(5,8,16,0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(6px);
+}
 
-        .gift-title {
-            font-size: 3rem;
-            margin-bottom: 20px;
-        }
+.gift-box {
+    text-align: center;
+    color: rgba(255,255,255,0.9);
+    animation: fadeIn 1.4s ease;
+}
 
-        .gift-text {
-            font-size: 1.2rem;
-            letter-spacing: 3px;
-            margin-bottom: 30px;
-        }
+.gift-title {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
 
-        #gift-btn {
-            padding: 12px 40px;
-            font-size: 1rem;
-            letter-spacing: 4px;
-            background: transparent;
-            color: rgba(255,192,203,0.9);
-            border: 1px solid rgba(255,192,203,0.6);
-            border-radius: 40px;
-            cursor: pointer;
-            transition: all 0.4s ease;
-        }
+.gift-text {
+    font-size: clamp(1rem,4vw,1.2rem);
+    letter-spacing: 0.2em;
+    margin-bottom: 30px;
+}
 
-        #gift-btn:hover {
-            background: rgba(255,192,203,0.15);
-            box-shadow: 0 0 20px rgba(255,192,203,0.4);
-        }
+#gift-btn {
+    padding: 14px 48px;
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    background: transparent;
+    color: rgba(255,192,203,0.9);
+    border: 1px solid rgba(255,192,203,0.6);
+    border-radius: 40px;
+    cursor: pointer;
+}
 
-        #gift-modal.hide {
-            animation: fadeOut 1.2s ease forwards;
-        }
+#gift-modal.hide {
+    animation: fadeOut 1.2s ease forwards;
+}
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes fadeOut {
-            to { opacity: 0; visibility: hidden; }
-        }
-    </style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes fadeOut {
+    to { opacity: 0; visibility: hidden; }
+}
+</style>
 </head>
+
 <body>
 
 <div id="typing-text"></div>
@@ -138,7 +139,6 @@
 <div class="footer">2026, 有你真好！</div>
 <canvas id="canvas"></canvas>
 
-<!-- 🎁 弹窗 -->
 <div id="gift-modal">
     <div class="gift-box">
         <div class="gift-title">🎁</div>
@@ -147,151 +147,258 @@
     </div>
 </div>
 
-<!-- 🎵 背景音乐（替换为你的音频） -->
 <audio id="bgm" loop preload="auto">
     <source src="靠近.mp3" type="audio/mpeg">
 </audio>
 
 <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const typingElement = document.getElementById('typing-text');
-    const bgm = document.getElementById('bgm');
+/* ===== 基础 ===== */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const typingElement = document.getElementById('typing-text');
+const bgm = document.getElementById('bgm');
+const isMobile = /mobile|android|iphone/i.test(navigator.userAgent);
 
-    let width, height;
-    let stars = [];
-    let heartParticles = [];
-    let mouse = { x: 0, y: 0 };
 
-    const config = {
-        heartParticleCount: 800,
-        starCount: 1000,
-        messages: [
-            "岁岁年年", "万物是你", "新春志喜", "人间理想", "温柔共度", "眸中星河", "Love You", "Forever", "今天也想靠近你一点","和你待在一起就很安心","世界吵闹，但你刚刚好","新的一年，我还是站在你这边","不止今年，是很多年", "你一出现，我就心软", "我的温柔，大概都用在你身上了", "夜色刚好，你也刚好", "今晚也想对你说晚安", "With you, I feel home", "Still you, always you"],
-        longText: "想把所有的温柔都寄送给你。\n新的一年，\n我们依然在彼此的星轨里共鸣。\n愿你被世界温柔以待，\n而我，负责守护这份温柔。"
-    };
+const nameText = "赵雪雁"; // ←←← 改这里
 
-    function init() {
-        resize();
-        createStars();
-        createHeart();
-        startTyping();
-        createWordCloud();
-        animate();
+let width, height;
+let stars = [];
+let heartParticles = [];
+let mouse = {x:0,y:0};
+let started = false;
+let heartBoost = 3;
+
+/* ===== 阶段控制 ===== */
+let stage = "name-1";
+let stageTime = 0;
+let namePoints = [];
+
+/* ===== 配置 ===== */
+const config = {
+    heartParticleCount: isMobile ? 420 : 800,
+    starCount: isMobile ? 500 : 1000,
+    messages: [
+        "岁岁年年","万物是你","新春志喜","人间理想","温柔共度","眸中星河","Love You","Forever",
+        "今天也想靠近你一点","和你待在一起就很安心","世界吵闹，但你刚刚好",
+        "新的一年，我还是站在你这边","不止今年，是很多年",
+        "你一出现，我就心软","我的温柔，大概都用在你身上了",
+        "夜色刚好，你也刚好","今晚也想对你说晚安",
+        "With you, I feel home","Still you, always you"
+    ],
+    longText:
+`想把所有的温柔都寄送给你。
+新的一年，
+我们依然在彼此的星轨里共鸣。
+愿你被世界温柔以待，
+而我，负责守护这份温柔。`
+};
+
+function resize(){
+    const dpr = window.devicePixelRatio || 1;
+
+    width = window.innerWidth;
+    height = window.innerHeight;
+
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+
+    ctx.resetTransform();   // ← 非常重要
+    ctx.scale(dpr, dpr);    // ← 只 scale 一次
+}
+
+
+
+/* ===== 星空 ===== */
+function createStars(){
+    stars=[];
+    for(let i=0;i<config.starCount;i++){
+        stars.push({
+            x:Math.random()*width,
+            y:Math.random()*height,
+            size:Math.random()*1.2,
+            opacity:Math.random(),
+            speed:Math.random()*0.05+0.02,
+            blinkSpeed:Math.random()*0.02+0.01
+        });
     }
+}
 
-    function resize() {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
+/* ===== 爱心 ===== */
+function createHeart(){
+    heartParticles=[];
+    for(let i=0;i<config.heartParticleCount;i++){
+        const t=Math.random()*Math.PI*2;
+        const x=16*Math.pow(Math.sin(t),3);
+        const y=-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));
+        heartParticles.push({
+            x:(Math.random()-0.5)*width,
+            y:(Math.random()-0.5)*height,
+            targetX:x*16,
+            targetY:y*16,
+            size:Math.random()*2+0.6,
+            color:`hsla(${Math.random()*30+330},80%,75%,0.7)`,
+            speed:Math.random()*0.04+0.015
+        });
     }
+}
 
-    function createStars() {
-        stars = [];
-        for (let i = 0; i < config.starCount; i++) {
-            stars.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                size: Math.random() * 1.2,
-                opacity: Math.random(),
-                speed: Math.random() * 0.05 + 0.02,
-                blinkSpeed: Math.random() * 0.02 + 0.01
-            });
-        }
-    }
+function getTextPoints(text, offsetX){
+    const dpr = window.devicePixelRatio || 1;
+    const c = document.createElement('canvas');
+    const cx = c.getContext('2d');
 
-    function createHeart() {
-        for (let i = 0; i < config.heartParticleCount; i++) {
-            const t = Math.random() * Math.PI * 2;
-            const x = 16 * Math.pow(Math.sin(t), 3);
-            const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
-            heartParticles.push({
-                x: (Math.random() - 0.5) * width,
-                y: (Math.random() - 0.5) * height,
-                targetX: x * 16,
-                targetY: y * 16,
-                size: Math.random() * 2 + 0.5,
-                color: `hsla(${Math.random() * 30 + 330}, 80%, 75%, 0.7)`,
-                speed: Math.random() * 0.04 + 0.015
-            });
-        }
-    }
+    const size = isMobile ? 110 : 150;
+    const canvasSize = size * 2;
 
-    function startTyping() {
-        let i = 0;
-        function type() {
-            if (i < config.longText.length) {
-                const char = config.longText.charAt(i);
-                typingElement.innerHTML += char === '\n' ? '<br>' : char;
-                i++;
-                setTimeout(type, 120);
+    c.width = canvasSize * dpr;
+    c.height = canvasSize * dpr;
+    c.style.width = canvasSize + 'px';
+    c.style.height = canvasSize + 'px';
+
+    cx.scale(dpr, dpr);
+    cx.font = `bold ${size}px PingFang SC, Microsoft YaHei`;
+    cx.fillStyle = '#fff';
+    cx.textAlign = 'center';
+    cx.textBaseline = 'middle';
+    cx.fillText(text, canvasSize / 2, canvasSize / 2);
+
+    const data = cx.getImageData(0, 0, c.width, c.height).data;
+    const pts = [];
+
+    // ✅ 循环 x 和 y
+    for (let y = 0; y < c.height; y += 6) {
+        for (let x = 0; x < c.width; x += 6) {
+            if (data[(y * c.width + x) * 4 + 3] > 150) {
+                pts.push({
+                    x: x / dpr - canvasSize / 2 + offsetX,
+                    y: y / dpr - canvasSize / 2
+                });
             }
         }
-        type();
     }
 
-    function createWordCloud() {
-        const cloud = document.getElementById('word-cloud');
-        config.messages.forEach((text, i) => {
-            const item = document.createElement('div');
-            item.className = 'word-item';
-            item.innerText = text;
-            item.style.animationDelay = `-${i * 4}s`;
-            item.style.top = `${(Math.random() - 0.5) * 400}px`;
-            cloud.appendChild(item);
-        });
-    }
+    return pts;
+}
 
-    function animate() {
-        ctx.fillStyle = '#050810';
-        ctx.fillRect(0, 0, width, height);
 
-        stars.forEach(s => {
-            s.opacity += s.blinkSpeed;
-            if (s.opacity > 1 || s.opacity < 0) s.blinkSpeed *= -1;
-            ctx.beginPath();
-            ctx.arc(s.x + mouse.x * 0.01, s.y + mouse.y * 0.01, s.size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255,255,255,${Math.abs(s.opacity)})`;
-            ctx.fill();
-            s.y -= s.speed;
-            if (s.y < -10) s.y = height + 10;
-        });
 
-        ctx.save();
-        ctx.translate(width / 2 + mouse.x * 0.04, height / 2 + mouse.y * 0.04);
-        heartParticles.forEach(p => {
-            p.x += (p.targetX - p.x) * p.speed;
-            p.y += (p.targetY - p.y) * p.speed;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fillStyle = p.color;
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = p.color;
-            ctx.fill();
-        });
-        ctx.restore();
+function prepareNamePoints(){
+    namePoints=[];
+    nameText.split('').forEach((c,i)=>{
+        namePoints.push(getTextPoints(c,(i-1)*(isMobile?90:140)));
+    });
+}
 
-        requestAnimationFrame(animate);
-    }
+/* ===== 打字 ===== */
+function startTyping(){
+    let i=0;
+    (function type(){
+        if(i<config.longText.length){
+            const c=config.longText.charAt(i);
+            typingElement.innerHTML+=c==='\n'?'<br>':c;
+            i++;
+            setTimeout(type,120);
+        }
+    })();
+}
 
-    window.addEventListener('mousemove', e => {
-        mouse.x = e.clientX - width / 2;
-        mouse.y = e.clientY - height / 2;
+/* ===== 3D 文字 ===== */
+function createWordCloud(){
+    const cloud=document.getElementById('word-cloud');
+    config.messages.forEach((t,i)=>{
+        const d=document.createElement('div');
+        d.className='word-item';
+        d.innerText=t;
+        d.style.animationDelay=`-${i*4}s`;
+        d.style.top=`${(Math.random()-0.5)*400}px`;
+        cloud.appendChild(d);
+    });
+}
+
+/* ===== 动画 ===== */
+function animate(){
+    ctx.fillStyle='#050810';
+    ctx.fillRect(0,0,width,height);
+
+    stars.forEach(s=>{
+        s.opacity+=s.blinkSpeed;
+        if(s.opacity>1||s.opacity<0) s.blinkSpeed*=-1;
+        ctx.beginPath();
+        ctx.arc(s.x,s.y,s.size,0,Math.PI*2);
+        ctx.fillStyle=`rgba(255,255,255,${Math.abs(s.opacity)})`;
+        ctx.fill();
+        s.y-=s.speed;
+        if(s.y<-10) s.y=height+10;
     });
 
-    window.addEventListener('resize', init);
+    ctx.save();
+    ctx.translate(width/2,height/2);
 
-    /* 🎁 弹窗 & 音乐控制 */
-    const modal = document.getElementById('gift-modal');
-    const giftBtn = document.getElementById('gift-btn');
-    bgm.volume = 0.4;
+    heartParticles.forEach((p,i)=>{
+        let tx=p.targetX, ty=p.targetY;
+        if(stage.startsWith("name")){
+            const idx=Number(stage.split("-")[1])-1;
+            const pts=namePoints[idx];
+            const pt=pts[i%pts.length];
+            tx=pt.x; ty=pt.y;
+        }
+        if(stage==="scatter"){
+            tx=(Math.random()-0.5)*width;
+            ty=(Math.random()-0.5)*height;
+        }
+        p.x+=(tx-p.x)*p.speed*heartBoost;
+        p.y+=(ty-p.y)*p.speed*heartBoost;
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+        ctx.fillStyle=p.color;
+        ctx.shadowBlur = isMobile ? 4 : 6;
+        ctx.shadowColor = p.color;
 
-    giftBtn.addEventListener('click', () => {
-        bgm.play().catch(() => {});
-        modal.classList.add('hide');
-        setTimeout(() => modal.remove(), 1200);
+        ctx.fill();
     });
 
-    init();
+    ctx.restore();
+
+    stageTime++;
+    if(stage==="name-1"&&stageTime>120){stage="name-2";stageTime=0;}
+    if(stage==="name-2"&&stageTime>120){stage="name-3";stageTime=0;}
+    if(stage==="name-3"&&stageTime>140){stage="scatter";stageTime=0;}
+    if(stage==="scatter"&&stageTime>80){stage="heart";stageTime=0;}
+
+    heartBoost+=(1-heartBoost)*0.02;
+    requestAnimationFrame(animate);
+}
+
+/* ===== 礼物触发 ===== */
+document.getElementById('gift-btn').onclick=()=>{
+    if(started) return;
+    started=true;
+    document.getElementById('gift-modal').classList.add('hide');
+    setTimeout(()=>document.getElementById('gift-modal').remove(),1200);
+
+    bgm.volume=0;
+    bgm.play();
+    let v=0;
+    const fade=setInterval(()=>{
+        v+=0.02;
+        bgm.volume=Math.min(v,0.4);
+        if(v>=0.4) clearInterval(fade);
+    },80);
+
+    resize();
+    createStars();
+    createHeart();
+    prepareNamePoints();
+    startTyping();
+    createWordCloud();
+    animate();
+};
+
+window.addEventListener('resize',resize);
 </script>
 </body>
 </html>
